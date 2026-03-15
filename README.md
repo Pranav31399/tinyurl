@@ -1,37 +1,40 @@
-# tinyurl (Java)
+# tinyurl (Spring Boot)
 
-A scalable URL shortener implementation in pure Java.
+A scalable URL shortener implementation migrated to Spring Boot.
 
 ## Implemented design points
 
 - **Write path**: `POST /api/v1/urls` with `{"longUrl":"..."}` creates a new short URL.
 - **Read path**: `GET /{shortCode}` redirects to original URL (default `302`, or `?statusCode=301`).
 - **Short code generation**: Snowflake-like distributed ID + Base62 encoding (collision-free by construction).
-- **Cache + storage**: in-memory cache and repository abstractions (can be swapped for Redis + Cassandra/MongoDB).
-- **Scalable architecture alignment**: stateless HTTP app + worker-id-based ID generation suitable for horizontal scale.
+- **Cache + storage**: in-memory cache and repository abstractions.
+- **Scalable architecture alignment**: stateless web app + worker-id-based ID generation suitable for horizontal scale.
 
 ## Project structure
 
 - `service/SnowflakeIdGenerator`: distributed-unique numeric IDs.
 - `util/Base62Codec`: decimal-to-Base62 conversion.
 - `service/UrlShortenerService`: core write/read path logic.
-- `http/TinyUrlHttpServer`: lightweight HTTP API.
+- `api/TinyUrlController`: Spring MVC REST + redirect endpoints.
+- `config/AppConfig`: dependency wiring for repository + ID generator.
 
 ## Run
 
 ```bash
-mkdir -p out
-javac -d out $(find src/main/java -name '*.java')
-java -cp out com.example.tinyurl.TinyUrlApplication
+mvn spring-boot:run
 ```
 
 ## Test
 
 ```bash
-mkdir -p out
-javac -d out $(find src/main/java src/test/java -name '*.java')
-java -ea -cp out com.example.tinyurl.TestRunner
+mvn test
 ```
+
+## Configuration
+
+- `server.port` (default: `8080`)
+- `tinyurl.base-url` (default: `http://localhost:${server.port}`)
+- `tinyurl.worker-id` (default: `1`)
 
 ## API usage
 
